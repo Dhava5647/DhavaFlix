@@ -1,10 +1,319 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="scroll-smooth">
 <head>
-  <title>Dhava Movies</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DhavaFlix - The Aether Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: #EAEAEA;
+            --primary-glow: #FFFFFF;
+            --secondary-glow: #a7a7a7;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+        /* --- Breathing Mesh Gradient Background --- */
+        #aether-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: var(--bg-color);
+        }
+        .gradient-blob {
+            position: absolute;
+            width: 50vmax;
+            height: 50vmax;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 60%);
+            border-radius: 50%;
+            transition: transform 10s linear;
+            animation: move 40s infinite alternate;
+        }
+        .blob-1 { top: -20%; left: -10%; animation-delay: 0s; }
+        .blob-2 { bottom: -20%; right: -10%; animation-delay: 10s; }
+        .blob-3 { top: 30%; left: 40%; width: 30vmax; height: 30vmax; animation-delay: 20s; }
+        @keyframes move {
+            from { transform: rotate(0deg) translateX(5vmax) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(5vmax) rotate(-360deg); }
+        }
+
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* --- Glassmorphism Header --- */
+        .glass-header {
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-glow);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease-out;
+        }
+        .nav-link:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* --- "Magnetic" Movie Card Effect --- */
+        .card-container { perspective: 1500px; }
+        .movie-card {
+            transition: transform 0.2s linear;
+            transform-style: preserve-3d;
+        }
+        .card-inner {
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .movie-card:hover .card-inner { transform: scale(1.05) translateZ(40px); }
+        
+        .volumetric-light {
+            position: absolute;
+            inset: -50px;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+            border-radius: 1rem;
+            filter: blur(40px);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            z-index: -1;
+        }
+        .movie-card:hover .volumetric-light {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .card-details {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .movie-card:hover .card-details {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Reveal Animation --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.165, 0.84, 0.44, 1), transform 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
-<body style="background:black;color:white;">
-  <h1>🎬 Dhava Movies</h1>
-  <p>Welcome to my movie site!</p>
+<body class="overflow-x-hidden">
+
+    <div id="aether-background">
+        <div class="gradient-blob blob-1"></div>
+        <div class="gradient-blob blob-2"></div>
+        <div class="gradient-blob blob-3"></div>
+    </div>
+
+    <!-- 
+      =================================
+      NAVIGATION HEADER
+      =================================
+    -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-header">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="font-cormorant text-3xl font-bold text-white tracking-widest">DHAVAFLIX</h1>
+            <div class="hidden md:flex items-center space-x-8 text-lg">
+                <a href="#" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Movies</a>
+                <a href="#" class="nav-link">Series</a>
+                <a href="#" class="nav-link">My List</a>
+            </div>
+            <div class="flex items-center">
+                 <img src="https://placehold.co/40x40/EAEAEA/050505?text=U" alt="Profile" class="w-10 h-10 rounded-full border-2 border-white/50"/>
+            </div>
+        </nav>
+    </header>
+
+    <main class="relative z-10">
+        <!-- 
+          =================================
+          HERO SECTION
+          =================================
+        -->
+        <section id="hero-section" class="relative h-screen flex items-end justify-start text-left overflow-hidden">
+            <video autoplay muted loop playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-40">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-ethereal-white-ink-in-dark-water-34759-large.mp4" type="video/mp4">
+            </video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[var(--bg-color)] to-transparent"></div>
+
+            <div class="relative z-20 p-8 md:p-12 lg:p-24 max-w-3xl">
+                <h2 class="font-cormorant text-6xl md:text-8xl font-bold" style="text-shadow: 0 5px 20px rgba(0,0,0,0.5);">Ephemeral</h2>
+                <p class="text-lg md:text-xl mt-4 text-gray-300">In a realm where memories can be captured and relived, a historian uncovers a forgotten past that threatens the very fabric of his reality. A journey not through space, but through soul.</p>
+                <div class="flex space-x-4 mt-8">
+                    <button class="flex items-center justify-center bg-white text-black font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 shadow-2xl">
+                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4.545 15.636a9 9 0 1112.728-12.728A9 9 0 014.545 15.636zM10 3a7 7 0 100 14 7 7 0 000-14zm-1 4a1 1 0 112 0v4a1 1 0 11-2 0V7z"></path></svg>
+                        MORE INFO
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          =================================
+          CONTENT ROWS
+          =================================
+        -->
+        <div id="content-rows-container" class="space-y-20 pb-20 px-4 md:px-12">
+            <!-- Rows will be injected here -->
+        </div>
+    </main>
+    
+    <script>
+        // --- MOCK DATA ---
+        const contentData = [
+          {
+            title: "Critically Acclaimed Cinema",
+            movies: [
+              { title: "Winter's Solace", imageUrl: "https://images.unsplash.com/photo-1549472523-b7a421695294?q=80&w=1974&auto=format&fit=crop" },
+              { title: "The Gilded Cage", imageUrl: "https://images.unsplash.com/photo-1595991206896-156845345749?q=80&w=1974&auto=format&fit=crop" },
+              { title: "Ocean's Breath", imageUrl: "https://images.unsplash.com/photo-1509233725247-49e657c54213?q=80&w=1949&auto=format&fit=crop" },
+              { title: "Silk & Shadow", imageUrl: "https://images.unsplash.com/photo-1541103554476-80f438c823b5?q=80&w=1966&auto=format&fit=crop" },
+              { title: "Hiraeth", imageUrl: "https://images.unsplash.com/photo-1559598467-f8b76c535553?q=80&w=1978&auto=format&fit=crop" },
+            ]
+          },
+          {
+            title: "Fantastical Worlds",
+            movies: [
+              { title: "Aethelgard", imageUrl: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=2070&auto=format&fit=crop" },
+              { title: "The Sunken City", imageUrl: "https://images.unsplash.com/photo-1615412704593-688264aa107b?q=80&w=1974&auto=format&fit=crop" },
+              { title: "Whispering Woods", imageUrl: "https://images.unsplash.com/photo-1440778303588-435521a205bc?q=80&w=2070&auto=format&fit=crop" },
+              { title: "Sky Sailors", imageUrl: "https://images.unsplash.com/photo-1528353518119-a155c5964049?q=80&w=1974&auto=format&fit=crop" },
+              { title: "The Ivory Tower", imageUrl: "https://images.unsplash.com/photo-1527419326462-7c354455172b?q=80&w=2070&auto=format&fit=crop" },
+            ]
+          }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Sound Engine ---
+            const synth = new Tone.FMSynth({
+                harmonicity: 3,
+                modulationIndex: 10,
+                envelope: { attack: 0.01, decay: 0.2, release: 0.8 },
+                modulationEnvelope: { attack: 0.1, decay: 0.3, release: 1 }
+            }).toDestination();
+            synth.volume.value = -20;
+            
+            document.querySelectorAll('a, button, .movie-card').forEach(el => {
+                el.addEventListener('mouseenter', () => Tone.start().then(() => synth.triggerAttackRelease("C5", "4n")));
+            });
+
+            // --- Dynamic Content Rows ---
+            const container = document.getElementById('content-rows-container');
+            if (container) {
+                contentData.forEach(category => {
+                    const rowHTML = `
+                        <div class="content-row reveal">
+                            <h2 class="font-cormorant text-4xl font-bold mb-8">${category.title}</h2>
+                            <div class="card-container flex space-x-6 md:space-x-8 -ml-2 overflow-x-auto pb-8 scrollbar-hide">
+                                ${category.movies.map(movie => `
+                                    <div class="movie-card flex-shrink-0 w-64 h-96 group">
+                                        <div class="volumetric-light"></div>
+                                        <div class="card-inner relative w-full h-full rounded-lg overflow-hidden">
+                                            <img src="${movie.imageUrl}" alt="${movie.title}" class="w-full h-full object-cover"/>
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                                            <div class="card-details absolute inset-0 p-4 flex flex-col justify-end">
+                                                <h3 class="font-bold text-xl">${movie.title}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += rowHTML;
+                });
+
+                // --- Magnetic Card Effect ---
+                document.querySelectorAll('.card-container').forEach(cont => {
+                    cont.addEventListener('mousemove', (e) => {
+                        const rect = cont.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        cont.querySelectorAll('.movie-card').forEach(card => {
+                            const cardRect = card.getBoundingClientRect();
+                            const cardCenterX = cardRect.left + cardRect.width / 2 - rect.left;
+                            const cardCenterY = cardRect.top + cardRect.height / 2 - rect.top;
+
+                            const dx = x - cardCenterX;
+                            const dy = y - cardCenterY;
+                            
+                            const maxDist = 400;
+                            const dist = Math.min(maxDist, Math.hypot(dx, dy));
+                            const power = (maxDist - dist) / maxDist;
+                            
+                            const tiltX = (dy / cardCenterY) * 10 * power;
+                            const tiltY = -(dx / cardCenterX) * 10 * power;
+
+                            card.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                        });
+                    });
+
+                    cont.addEventListener('mouseleave', () => {
+                        cont.querySelectorAll('.movie-card').forEach(card => {
+                            card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                        });
+                    });
+                });
+            }
+
+            // --- Scroll Reveal ---
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+        });
+    </script>
 </body>
 </html>
+
+
+  
