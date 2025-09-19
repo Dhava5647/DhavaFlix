@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="ohaElWDz6q11e5cRdCdJm6XmESL7Ff8Hu5lVK4E89jI" />
     <title>DhavaFlix – Watch Movies & Webseries</title>
     
     <!-- SEO, AdSense & Branding Meta Tags -->
@@ -17,8 +16,7 @@
     <meta name="theme-color" content="#101010">
     <meta property="og:url" content="">
     <meta property="twitter:card" content="summary_large_image">
-  <!-- ✅ Google Verification -->
-  <meta name="google-site-verification" content="google1600f6904b354479" />
+
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
     
@@ -75,8 +73,6 @@
         .reminder-bell.active { color: var(--electric-blue-light); }
         .progress-bar { height: 4px; background-color: var(--electric-blue); }
     </style>
-  
-  ...
 </head>
 <body class="themed-bg">
 
@@ -92,11 +88,11 @@
                         </svg>
                     </a>
                     <nav class="hidden md:flex space-x-6 text-sm font-medium">
-                        <a href="#" class="nav-link themed-text transition-colors hover:scale-105 active" data-view="home">Home</a>
-                        <a href="#" class="nav-link themed-text transition-colors hover:scale-105" data-view="tv">TV Shows</a>
-                        <a href="#" class="nav-link themed-text transition-colors hover:scale-105" data-view="movies">Movies</a>
-                        <a href="#" class="nav-link themed-text transition-colors hover:scale-105" data-view="comingsoon">Coming Soon</a>
-                        <a href="#" class="nav-link themed-text transition-colors hover:scale-105" data-view="mylist">My List</a>
+                        <a href="#" class="nav-link themed-text transition-transform duration-300 hover:scale-105 active" data-view="home">Home</a>
+                        <a href="#" class="nav-link themed-text transition-transform duration-300 hover:scale-105" data-view="tv">TV Shows</a>
+                        <a href="#" class="nav-link themed-text transition-transform duration-300 hover:scale-105" data-view="movies">Movies</a>
+                        <a href="#" class="nav-link themed-text transition-transform duration-300 hover:scale-105" data-view="comingsoon">Coming Soon</a>
+                        <a href="#" class="nav-link themed-text transition-transform duration-300 hover:scale-105" data-view="mylist">My List</a>
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -176,7 +172,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIG ---
-    const apiKey = "d1e8e40a387f88156c40b3653cd8ca73";
+    const apiKey = "0627e9682f6c3eca80da4e2a6217ce57"; // <-- NEW KEY INSERTED HERE
     const apiBaseUrl = "https://api.themoviedb.org/3";
     const imageBaseUrl = "https://image.tmdb.org/t/p/";
 
@@ -206,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveReminders = () => localStorage.setItem('dhavaflixReminders', JSON.stringify(reminders));
     const addToContinueWatching = (item) => {
         continueWatching = continueWatching.filter(i => i.id !== item.id);
-        item.progress = Math.floor(Math.random() * 80) + 10; // Simulate progress
+        item.progress = Math.floor(Math.random() * 80) + 10;
         continueWatching.unshift(item);
         if (continueWatching.length > 20) continueWatching.pop();
         saveContinueWatching();
@@ -214,8 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API & UTILITY HELPERS ---
     const fetchApi = async (path, params = "") => {
+        const url = `${apiBaseUrl}/${path}?api_key=${apiKey}&language=en-US${params}`;
         try {
-            const url = `${apiBaseUrl}/${path}?api_key=${apiKey}&language=en-US${params}`;
             const res = await fetch(url);
             if (!res.ok) {
                 console.error(`API Error: Status ${res.status} for ${url}`);
@@ -241,11 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = data.results[Math.floor(Math.random() * Math.min(10, data.results.length))];
         const title = item.title || item.name;
         const type = item.media_type || (item.title ? 'movie' : 'tv');
-        
-        // Preload hero image
         const preloadLink = document.createElement('link');
-        preloadLink.rel = 'preload';
-        preloadLink.as = 'image';
+        preloadLink.rel = 'preload'; preloadLink.as = 'image';
         preloadLink.href = `${imageBaseUrl}w1280${item.backdrop_path}`;
         document.head.appendChild(preloadLink);
 
@@ -266,8 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const showDetails = async (id, type) => {
         modal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         modalContentContainer.innerHTML = `<div class="p-8 text-center shimmer h-96 rounded-lg"></div>`;
-        const [details, credits] = await Promise.all([ fetchApi(`${type}/${id}`), fetchApi(`${type}/${id}/credits`) ]);
+        const details = await fetchApi(`${type}/${id}`);
         if (!details) { modalContentContainer.innerHTML = `<div class="p-8 text-center">Could not load details.</div>`; return; }
+        const [credits] = await Promise.all([ fetchApi(`${type}/${id}/credits`) ]);
         const videos = await fetchApi(`${type}/${id}/videos`);
         const trailer = videos?.results.find(v => v.site === 'YouTube' && v.type === 'Trailer');
         const castHTML = credits?.cast.slice(0, 6).map(person => person.profile_path ? `<div class="text-center"><img src="${imageBaseUrl}w185${person.profile_path}" class="rounded-full w-20 h-20 object-cover mx-auto" loading="lazy"><p class="text-sm mt-2">${person.name}</p><p class="text-xs">${person.character}</p></div>` : '').join('');
@@ -363,19 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const attachRowEventListeners = () => {
         document.querySelectorAll('.info-btn').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); showDetails(e.currentTarget.dataset.id, e.currentTarget.dataset.type) }));
         document.querySelectorAll('.play-trailer-btn').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); playVideo(e.currentTarget.dataset.id, e.currentTarget.dataset.type); }));
-        document.querySelectorAll('.carousel-container').forEach(c => {
-            const wrapper = c.querySelector('.carousel-wrapper');
-            if(wrapper) {
-                c.querySelector('.left-2')?.addEventListener('click', () => wrapper.scrollBy({ left: -wrapper.clientWidth, behavior: 'smooth' }));
-                c.querySelector('.right-2')?.addEventListener('click', () => wrapper.scrollBy({ left: wrapper.clientWidth, behavior: 'smooth' }));
-            }
-        });
+        document.querySelectorAll('.carousel-container').forEach(c => { const wrapper = c.querySelector('.carousel-wrapper'); if(wrapper) { c.querySelector('.left-2')?.addEventListener('click', () => wrapper.scrollBy({ left: -wrapper.clientWidth, behavior: 'smooth' })); c.querySelector('.right-2')?.addEventListener('click', () => wrapper.scrollBy({ left: wrapper.clientWidth, behavior: 'smooth' })); } });
     };
     const debouncedSearch = debounce(async (query) => {
         const searchResultsContainer = document.getElementById('search-results');
         if (query) {
             searchResultsContainer.innerHTML = `<div class="col-span-full shimmer h-24 rounded-lg"></div>`.repeat(3);
-            const data = await fetchApi('search/multi', `&query=${encodeURIComponent(query)}`);
+            const data = await fetchApi(`search/multi`, `&query=${encodeURIComponent(query)}`);
             const results = data ? data.results.filter(item => item.poster_path && item.media_type !== 'person') : [];
             searchResultsContainer.innerHTML = results.length === 0 ? `<p class="col-span-full">No results found.</p>` : results.map(item => createItemCard(item)).join('');
             attachRowEventListeners();
@@ -413,6 +401,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
