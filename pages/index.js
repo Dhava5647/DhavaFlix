@@ -1,5 +1,4 @@
 import React from "react";
-import "../style.css"; // 👈 This connects your CSS file
 
 export default function Home() {
   return (
